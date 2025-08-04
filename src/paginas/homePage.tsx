@@ -1,5 +1,5 @@
 // src/paginas/homePage.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { useDarkMode } from "../context/DarkModeContext";
 import Header from "../componentes/header";
 import Footer from "../componentes/footer";
