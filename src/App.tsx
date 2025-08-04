@@ -1,7 +1,7 @@
 // src/App.tsx
 import Home from "./paginas/homePage";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { DarkModeContext } from "./context/DarkModeContext";
 
 function App() {
