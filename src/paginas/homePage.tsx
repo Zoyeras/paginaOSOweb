@@ -417,7 +417,7 @@ const HomePage = () => {
               >
                 <div className="text-6xl">
                   {" "}
-                  <img src="/logo2.png" alt="" />
+                  <img src="/imagenes/logo2.png" alt="" />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
               </div>
