@@ -18,11 +18,10 @@ const Header: React.FC = () => {
   }, []);
 
   const navItems = [
-    { path: "/", label: "Inicio" },
-    { path: "/about", label: "Nosotros" },
-    { path: "/services", label: "Servicios" },
-    { path: "/portfolio", label: "Portafolio" },
-    { path: "/contact", label: "Contacto" },
+    { path: "#inicio", label: "Inicio" },
+    { path: "#nosotros", label: "Nosotros" },
+    { path: "#servicios", label: "Servicios" },
+    { path: "#contacto", label: "Contacto" },
   ];
 
   return (
@@ -35,7 +34,7 @@ const Header: React.FC = () => {
           : darkMode
           ? "bg-gray-900"
           : "bg-white"
-      }`}
+      } border-b ${darkMode ? "border-gray-800" : "border-gray-200"}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-20">
@@ -44,9 +43,10 @@ const Header: React.FC = () => {
             <span
               className={`text-2xl font-bold ${
                 darkMode ? "text-blue-400" : "text-blue-600"
-              }`}
+              } relative`}
             >
-              ReactApp
+              Diseños y Camisetas OSO
+              <span className="absolute -bottom-1 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></span>
             </span>
           </div>
 
@@ -57,11 +57,11 @@ const Header: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `text-base font-medium transition-colors duration-200 ${
+                  `text-base font-medium transition-colors duration-200 relative px-3 py-2 rounded-lg group ${
                     isActive
                       ? darkMode
-                        ? "text-blue-400"
-                        : "text-blue-600"
+                        ? "text-blue-400 bg-blue-900/20"
+                        : "text-blue-600 bg-blue-100"
                       : darkMode
                       ? "text-gray-300 hover:text-white"
                       : "text-gray-700 hover:text-gray-900"
@@ -69,6 +69,7 @@ const Header: React.FC = () => {
                 }
               >
                 {item.label}
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 group-hover:w-full"></span>
               </NavLink>
             ))}
           </nav>
@@ -79,9 +80,9 @@ const Header: React.FC = () => {
               onClick={toggleDarkMode}
               className={`p-2 rounded-full ${
                 darkMode
-                  ? "text-gray-300 hover:bg-gray-800"
+                  ? "text-gray-300 hover:bg-gray-800 hover:text-white"
                   : "text-gray-700 hover:bg-gray-200"
-              }`}
+              } transition-colors relative group`}
               aria-label={
                 darkMode ? "Switch to light mode" : "Switch to dark mode"
               }
@@ -89,7 +90,7 @@ const Header: React.FC = () => {
               {darkMode ? (
                 // Sun icon for light mode
                 <svg
-                  className="w-6 h-6"
+                  className="w-6 h-6 group-hover:rotate-12 transition-transform"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -105,7 +106,7 @@ const Header: React.FC = () => {
               ) : (
                 // Moon icon for dark mode
                 <svg
-                  className="w-6 h-6"
+                  className="w-6 h-6 group-hover:rotate-12 transition-transform"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -119,18 +120,19 @@ const Header: React.FC = () => {
                   />
                 </svg>
               )}
+              <span className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
             </button>
 
             <button
               className={`p-2 rounded-full ${
                 darkMode
-                  ? "text-gray-300 hover:bg-gray-800"
+                  ? "text-gray-300 hover:bg-gray-800 hover:text-white"
                   : "text-gray-700 hover:bg-gray-200"
-              }`}
+              } transition-colors relative group`}
               aria-label="Search"
             >
               <svg
-                className="w-6 h-6"
+                className="w-6 h-6 group-hover:scale-110 transition-transform"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -143,6 +145,7 @@ const Header: React.FC = () => {
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
+              <span className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
             </button>
           </div>
 
@@ -154,14 +157,14 @@ const Header: React.FC = () => {
                 darkMode
                   ? "text-gray-300 hover:bg-gray-800"
                   : "text-gray-700 hover:bg-gray-200"
-              }`}
+              } relative group`}
               aria-label={
                 darkMode ? "Switch to light mode" : "Switch to dark mode"
               }
             >
               {darkMode ? (
                 <svg
-                  className="w-6 h-6"
+                  className="w-6 h-6 group-hover:rotate-12 transition-transform"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -176,7 +179,7 @@ const Header: React.FC = () => {
                 </svg>
               ) : (
                 <svg
-                  className="w-6 h-6"
+                  className="w-6 h-6 group-hover:rotate-12 transition-transform"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -190,6 +193,7 @@ const Header: React.FC = () => {
                   />
                 </svg>
               )}
+              <span className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
             </button>
 
             <button
@@ -198,12 +202,12 @@ const Header: React.FC = () => {
                 darkMode
                   ? "text-gray-300 hover:bg-gray-800"
                   : "text-gray-700 hover:bg-gray-200"
-              }`}
+              } relative group`}
               aria-label="Open menu"
             >
               {isMenuOpen ? (
                 <svg
-                  className="w-6 h-6"
+                  className="w-6 h-6 group-hover:scale-110 transition-transform"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -218,7 +222,7 @@ const Header: React.FC = () => {
                 </svg>
               ) : (
                 <svg
-                  className="w-6 h-6"
+                  className="w-6 h-6 group-hover:scale-110 transition-transform"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -232,6 +236,7 @@ const Header: React.FC = () => {
                   />
                 </svg>
               )}
+              <span className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
             </button>
           </div>
         </div>
@@ -242,17 +247,17 @@ const Header: React.FC = () => {
         <div
           className={`px-2 pt-2 pb-3 space-y-1 sm:px-3 ${
             darkMode ? "bg-gray-800" : "bg-gray-50"
-          }`}
+          } border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}
         >
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `block px-3 py-2 rounded-md text-base font-medium ${
+                `block px-3 py-2 rounded-md text-base font-medium relative overflow-hidden group ${
                   isActive
                     ? darkMode
-                      ? "text-white bg-gray-900"
+                      ? "text-white bg-blue-900/20"
                       : "text-white bg-blue-600"
                     : darkMode
                     ? "text-gray-300 hover:text-white hover:bg-gray-700"
@@ -262,6 +267,7 @@ const Header: React.FC = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               {item.label}
+              <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity"></span>
             </NavLink>
           ))}
         </div>

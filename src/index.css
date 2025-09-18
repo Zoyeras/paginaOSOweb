@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+@theme {
+  /* 1. Variables para cada animación */
+  --animate-spin-slow: spin 20s linear infinite; /* Más lento para un movimiento más suave */
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-shine: shine 1.5s ease-in-out infinite;
+
+  /* 2. Definición de los keyframes */
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
