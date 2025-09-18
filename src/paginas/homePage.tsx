@@ -289,7 +289,7 @@ const HomePage = () => {
             const item = category.items[currentSlide];
             // Generar número aleatorio entre 1 y 10 para la imagen
             const imageNumber = Math.floor(Math.random() * 10) + 1;
-            const imagePath = `../src/assets/imagenes/Mockups camisetas/${category.name}/${item.image}${imageNumber}.jpg`;
+            const imagePath = `/imagenes/Mockups camisetas/${category.name}/${item.image}${imageNumber}.jpg`;
 
             return (
               <div key={category.name} className="mb-16">
