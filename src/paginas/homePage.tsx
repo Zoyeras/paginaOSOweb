@@ -22,11 +22,11 @@ type CartItem = {
 };
 
 const categoryConfig = [
-  { label: "Amor y amistad", folder: "Amor y amistad", price: "$59.900" },
-  { label: "Anime", folder: "Anime", price: "$64.900" },
-  { label: "Autos", folder: "Autos", price: "$62.900" },
-  { label: "Estudio Ghibli", folder: "Estudio Ghibli", price: "$61.900" },
-  { label: "Religioso", folder: "Religioso", price: "$57.900" },
+  { label: "Amor y amistad", folder: "Amor y amistad", price: "COTIZA YA" },
+  { label: "Anime", folder: "Anime", price: "COTIZA YA" },
+  { label: "Autos", folder: "Autos", price: "COTIZA YA" },
+  { label: "Estudio Ghibli", folder: "Estudio Ghibli", price: "COTIZA YA" },
+  { label: "Religioso", folder: "Religioso", price: "COTIZA YA" },
 ] as const;
 
 const categories = ["Todo", ...categoryConfig.map((category) => category.label)];
