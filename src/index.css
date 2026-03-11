@@ -4,7 +4,7 @@
   /* 1. Variables para cada animación */
   --animate-spin-slow: spin 20s linear infinite; /* Más lento para un movimiento más suave */
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  --animate-shine: shine 1.5s ease-in-out infinite;
+  --animate-float-soft: float-soft 8s ease-in-out infinite;
 
   /* 2. Definición de los keyframes */
   @keyframes shine {
@@ -15,4 +15,44 @@
       transform: translateX(100%);
     }
   }
+
+  @keyframes float-soft {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.hero-mesh {
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(232, 121, 249, 0.2), transparent 38%),
+    radial-gradient(circle at 80% 30%, rgba(99, 102, 241, 0.2), transparent 36%),
+    radial-gradient(circle at 60% 70%, rgba(236, 72, 153, 0.16), transparent 42%);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #020617;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(#d946ef, #6366f1);
+  border-radius: 999px;
 }
