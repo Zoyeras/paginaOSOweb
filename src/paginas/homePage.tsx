@@ -21,100 +21,50 @@ type CartItem = {
   quantity: number;
 };
 
-const products: Product[] = [
-  {
-    id: 1,
-    title: "Love Drop #01",
-    category: "Romance",
-    price: "$59.900",
-    badge: "Top ventas",
-    image: "/imagenes/Mockups camisetas/Amor y amistad/Amor1.jpg",
-    description: "Diseño clean con vibra romantica para regalo o date night.",
-  },
-  {
-    id: 2,
-    title: "Shonen Energy",
-    category: "Anime",
-    price: "$64.900",
-    badge: "Nuevo",
-    image: "/imagenes/Mockups camisetas/Amor y amistad/Amor2.jpg",
-    description: "Estilo grafico intenso y contraste alto para streetwear.",
-  },
-  {
-    id: 3,
-    title: "Turbo Classic",
-    category: "Autos",
-    price: "$62.900",
-    badge: "Edicion limitada",
-    image: "/imagenes/Mockups camisetas/Amor y amistad/Amor3.jpg",
-    description: "Acentos vintage para fan de motores y cultura racing.",
-  },
-  {
-    id: 4,
-    title: "Spirit Forest",
-    category: "Ghibli",
-    price: "$61.900",
-    badge: "Fan favorite",
-    image: "/imagenes/Mockups camisetas/Amor y amistad/Amor4.jpg",
-    description: "Paleta suave con toque magico inspirada en fantasia.",
-  },
-  {
-    id: 5,
-    title: "Fe Minimal",
-    category: "Religioso",
-    price: "$57.900",
-    badge: "Popular",
-    image: "/imagenes/Mockups camisetas/Amor y amistad/Amor5.jpg",
-    description: "Mensaje inspiracional con una composicion elegante.",
-  },
-  {
-    id: 6,
-    title: "Tokyo Pulse",
-    category: "Anime",
-    price: "$66.900",
-    badge: "Premium",
-    image: "/imagenes/Mockups camisetas/Amor y amistad/Amor6.jpg",
-    description: "Diseño vibrante para quienes quieren destacar de una.",
-  },
-  {
-    id: 7,
-    title: "Heartline",
-    category: "Romance",
-    price: "$58.900",
-    badge: "Especial",
-    image: "/imagenes/Mockups camisetas/Amor y amistad/Amor7.jpg",
-    description: "Minimal pero expresiva, ideal para regalo personalizado.",
-  },
-  {
-    id: 8,
-    title: "Track Day",
-    category: "Autos",
-    price: "$60.900",
-    badge: "Nuevo",
-    image: "/imagenes/Mockups camisetas/Amor y amistad/Amor8.jpg",
-    description: "Tipografia agresiva y energia de pista en cada detalle.",
-  },
-  {
-    id: 9,
-    title: "Cloud Walker",
-    category: "Ghibli",
-    price: "$63.900",
-    badge: "Top ventas",
-    image: "/imagenes/Mockups camisetas/Amor y amistad/Amor9.jpg",
-    description: "Acabado artistico con composicion soñadora y suave.",
-  },
-  {
-    id: 10,
-    title: "Grace Edition",
-    category: "Religioso",
-    price: "$59.900",
-    badge: "Recomendado",
-    image: "/imagenes/Mockups camisetas/Amor y amistad/Amor10.jpg",
-    description: "Visual pulido para un look sobrio con mensaje potente.",
-  },
-];
+const categoryConfig = [
+  { label: "Amor y amistad", folder: "Amor y amistad", price: "$59.900" },
+  { label: "Anime", folder: "Anime", price: "$64.900" },
+  { label: "Autos", folder: "Autos", price: "$62.900" },
+  { label: "Estudio Ghibli", folder: "Estudio Ghibli", price: "$61.900" },
+  { label: "Religioso", folder: "Religioso", price: "$57.900" },
+] as const;
 
-const categories = ["Todo", "Anime", "Romance", "Autos", "Ghibli", "Religioso"];
+const categories = ["Todo", ...categoryConfig.map((category) => category.label)];
+
+const productImages = import.meta.glob(
+  "../../public/imagenes/Mockups camisetas/**/*.{jpg,jpeg,png,webp}",
+  {
+    eager: true,
+    import: "default",
+  }
+) as Record<string, string>;
+
+const toTitle = (filePath: string) => {
+  const fileName = filePath.split("/").pop() || "Diseno";
+  return fileName
+    .replace(/\.(jpg|jpeg|png|webp)$/i, "")
+    .replace(/^´MOCKUP EDITABLE[-_]?/i, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const products: Product[] = categoryConfig.flatMap((category, categoryIndex) => {
+  const folderSegment = `/Mockups camisetas/${category.folder}/`;
+  const folderImages = Object.entries(productImages)
+    .filter(([filePath]) => filePath.includes(folderSegment))
+    .sort(([a], [b]) => a.localeCompare(b, "es"));
+
+  return folderImages.map(([filePath, imageUrl], imageIndex) => ({
+    id: categoryIndex * 1000 + imageIndex + 1,
+    title: toTitle(filePath),
+    category: category.label,
+    price: category.price,
+    badge: imageIndex < 3 ? "Top ventas" : "Disponible",
+    image: imageUrl,
+    description: `Diseno de la coleccion ${category.label}.`,
+  }));
+});
 
 const heroSlides = [
   {
