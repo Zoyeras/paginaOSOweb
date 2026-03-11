@@ -85,15 +85,27 @@ const parsePrice = (price: string) => Number(price.replace(/[^\d]/g, ""));
 const formatPrice = (value: number) =>
   `$${new Intl.NumberFormat("es-CO").format(value)}`;
 
+const ROWS_PER_BATCH = 3;
+const MAX_CARDS_PER_ROW = 4;
+const PRODUCTS_BATCH_SIZE = ROWS_PER_BATCH * MAX_CARDS_PER_ROW;
+const MOBILE_PRODUCTS_BATCH_SIZE = 8;
+
 const HomePage = () => {
   const { darkMode } = useDarkMode();
   const [selectedCategory, setSelectedCategory] = useState("Todo");
   const [activeSlide, setActiveSlide] = useState(0);
+  const [isMobileView, setIsMobileView] = useState(false);
+  const productsBatchSize = isMobileView
+    ? MOBILE_PRODUCTS_BATCH_SIZE
+    : PRODUCTS_BATCH_SIZE;
+  const [visibleProductsCount, setVisibleProductsCount] =
+    useState(productsBatchSize);
   const [liked, setLiked] = useState<Record<number, boolean>>({});
   const [notice, setNotice] = useState<{
     kind: "error" | "success";
     message: string;
   } | null>(null);
+  const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const [contactForm, setContactForm] = useState({
     nombre: "",
     ubicacion: "",
@@ -156,6 +168,14 @@ const HomePage = () => {
   }, []);
 
   useEffect(() => {
+    const media = window.matchMedia("(max-width: 639px)");
+    const apply = () => setIsMobileView(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
+
+  useEffect(() => {
     if (!notice) return;
     const timeout = setTimeout(() => setNotice(null), 3500);
     return () => clearTimeout(timeout);
@@ -169,6 +189,17 @@ const HomePage = () => {
       return matchesCategory;
     });
   }, [selectedCategory]);
+
+  const visibleProducts = useMemo(
+    () => filteredProducts.slice(0, visibleProductsCount),
+    [filteredProducts, visibleProductsCount]
+  );
+
+  const hasMoreProducts = visibleProductsCount < filteredProducts.length;
+
+  useEffect(() => {
+    setVisibleProductsCount(productsBatchSize);
+  }, [selectedCategory, productsBatchSize]);
 
   useEffect(() => {
     const rawCart = localStorage.getItem("oso_cart");
@@ -281,6 +312,25 @@ const HomePage = () => {
 
   const clearCart = () => setCart([]);
 
+  useEffect(() => {
+    if (!previewProduct) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPreviewProduct(null);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [previewProduct]);
+
   return (
     <div className={`min-h-screen ${darkMode ? "bg-slate-950 text-white" : "bg-slate-50 text-slate-900"}`}>
       {notice && (
@@ -305,6 +355,40 @@ const HomePage = () => {
             >
               ✕
             </button>
+          </div>
+        </div>
+      )}
+
+      {previewProduct && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setPreviewProduct(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Vista previa de ${previewProduct.title}`}
+        >
+          <div
+            className={`relative w-full max-w-4xl overflow-hidden rounded-3xl border shadow-2xl ${
+              darkMode ? "border-white/10 bg-slate-900" : "border-slate-200 bg-white"
+            }`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewProduct(null)}
+              className="absolute right-3 top-3 z-10 rounded-full bg-black/60 px-3 py-1 text-sm text-white"
+              aria-label="Cerrar vista previa"
+            >
+              ✕
+            </button>
+            <img
+              src={previewProduct.image}
+              alt={previewProduct.title}
+              className="max-h-[80vh] w-full object-contain"
+            />
+            <div className={`flex items-center justify-between gap-3 px-5 py-4 ${darkMode ? "text-slate-200" : "text-slate-700"}`}>
+              <p className="text-sm font-semibold">{previewProduct.title}</p>
+              <p className="text-sm font-semibold">{previewProduct.price}</p>
+            </div>
           </div>
         </div>
       )}
@@ -434,8 +518,8 @@ const HomePage = () => {
             ))}
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredProducts.map((product) => (
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {visibleProducts.map((product) => (
               <article
                 key={product.id}
                 className={`group overflow-hidden rounded-3xl border transition hover:-translate-y-1 hover:shadow-2xl ${
@@ -448,7 +532,7 @@ const HomePage = () => {
                   <img
                     src={product.image}
                     alt={product.title}
-                    className="h-64 w-full object-cover transition duration-500 group-hover:scale-105"
+                    className="h-44 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-64"
                   />
                   <span className="absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
                     {product.badge}
@@ -483,6 +567,7 @@ const HomePage = () => {
                       className={`rounded-xl px-3 py-2 text-sm font-semibold ${
                         darkMode ? "bg-white/10 text-slate-100" : "bg-slate-100 text-slate-700"
                       }`}
+                      onClick={() => setPreviewProduct(product)}
                     >
                       Ver
                     </button>
@@ -492,11 +577,26 @@ const HomePage = () => {
             ))}
           </div>
 
-          <div
-            className={`mt-8 rounded-3xl border p-5 ${
-              darkMode ? "border-white/10 bg-white/5" : "border-slate-200 bg-white"
-            }`}
-          >
+          {hasMoreProducts && (
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={() =>
+                  setVisibleProductsCount(
+                    (prev) => prev + productsBatchSize
+                   )
+                 }
+                className="rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-6 py-3 text-sm font-semibold text-white"
+              >
+                Ver mas
+              </button>
+            </div>
+          )}
+
+           <div
+             className={`mt-8 rounded-3xl border p-5 ${
+               darkMode ? "border-white/10 bg-white/5" : "border-slate-200 bg-white"
+             }`}
+           >
             <div className="mb-4 flex items-center justify-between gap-4">
               <h3 className="text-xl font-bold">Carrito de compra</h3>
               <button
