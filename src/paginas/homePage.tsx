@@ -111,8 +111,8 @@ const products: Product[] = [
 
 const heroSlides = [
   {
-    title: "Tu camiseta no es ropa. Es identidad.",
-    subtitle: "Drops con disenos unicos para que te miren dos veces.",
+    title: "Tu camiseta no es ropa.\nEs identidad.",
+    subtitle: "Drops con diseños unicos para que te miren dos veces.",
   },
   {
     title: "Personalizamos tu idea en menos de 48h.",
@@ -130,6 +130,48 @@ const HomePage = () => {
   const [query, setQuery] = useState("");
   const [activeSlide, setActiveSlide] = useState(0);
   const [liked, setLiked] = useState<Record<number, boolean>>({});
+  const [contactForm, setContactForm] = useState({
+    nombre: "",
+    ubicacion: "",
+    tipoDiseno: "",
+    cantidad: "",
+    detalles: "",
+  });
+
+  const whatsappNumber = "573219064790";
+
+  const handleContactChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = event.target;
+    setContactForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleContactSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (
+      !contactForm.nombre.trim() ||
+      !contactForm.ubicacion.trim() ||
+      !contactForm.tipoDiseno.trim()
+    ) {
+      window.alert("Completa nombre, ubicacion y tipo de diseno para continuar.");
+      return;
+    }
+
+    const message = [
+      "Hola O.S.O Studio, quiero mi propuesta.",
+      "",
+      `Nombre: ${contactForm.nombre.trim()}`,
+      `Ubicacion: ${contactForm.ubicacion.trim()}`,
+      `Tipo de camisa/diseno: ${contactForm.tipoDiseno.trim()}`,
+      `Cantidad aproximada: ${contactForm.cantidad.trim() || "Por definir"}`,
+      `Detalles: ${contactForm.detalles.trim() || "Sin detalles adicionales"}`,
+    ].join("\n");
+
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -175,7 +217,7 @@ const HomePage = () => {
             }`}>
               nueva temporada 2026
             </p>
-            <h1 className="text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
+            <h1 className="whitespace-pre-line text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
               {heroSlides[activeSlide].title}
             </h1>
             <p className={`mt-5 max-w-xl text-lg ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
@@ -402,9 +444,12 @@ const HomePage = () => {
             </div>
           </div>
 
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleContactSubmit}>
             <input
               type="text"
+              name="nombre"
+              value={contactForm.nombre}
+              onChange={handleContactChange}
               placeholder="Nombre"
               className={`w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                 darkMode
@@ -413,8 +458,35 @@ const HomePage = () => {
               }`}
             />
             <input
-              type="email"
-              placeholder="Correo"
+              type="text"
+              name="ubicacion"
+              value={contactForm.ubicacion}
+              onChange={handleContactChange}
+              placeholder="Ubicacion (ciudad o barrio)"
+              className={`w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                darkMode
+                  ? "border-white/10 bg-white/5 text-white placeholder:text-slate-400"
+                  : "border-slate-200 bg-slate-50 placeholder:text-slate-500"
+              }`}
+            />
+            <input
+              type="text"
+              name="tipoDiseno"
+              value={contactForm.tipoDiseno}
+              onChange={handleContactChange}
+              placeholder="Tipo de camisa o diseno"
+              className={`w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                darkMode
+                  ? "border-white/10 bg-white/5 text-white placeholder:text-slate-400"
+                  : "border-slate-200 bg-slate-50 placeholder:text-slate-500"
+              }`}
+            />
+            <input
+              type="text"
+              name="cantidad"
+              value={contactForm.cantidad}
+              onChange={handleContactChange}
+              placeholder="Cantidad aproximada"
               className={`w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                 darkMode
                   ? "border-white/10 bg-white/5 text-white placeholder:text-slate-400"
@@ -423,7 +495,10 @@ const HomePage = () => {
             />
             <textarea
               rows={4}
-              placeholder="Que tipo de camiseta o diseño necesitas?"
+              name="detalles"
+              value={contactForm.detalles}
+              onChange={handleContactChange}
+              placeholder="Cuentanos idea, colores, referencias o fecha limite"
               className={`w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                 darkMode
                   ? "border-white/10 bg-white/5 text-white placeholder:text-slate-400"
@@ -431,7 +506,7 @@ const HomePage = () => {
               }`}
             />
             <button
-              type="button"
+              type="submit"
               className="w-full rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-5 py-3 text-sm font-semibold text-white"
             >
               Quiero mi propuesta
