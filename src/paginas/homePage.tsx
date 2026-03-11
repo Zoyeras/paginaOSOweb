@@ -14,7 +14,12 @@ type Product = {
   description: string;
 };
 
-const categories = ["Todo", "Anime", "Romance", "Autos", "Ghibli", "Religioso"];
+type CartItem = {
+  id: number;
+  title: string;
+  price: string;
+  quantity: number;
+};
 
 const products: Product[] = [
   {
@@ -124,9 +129,12 @@ const heroSlides = [
   },
 ];
 
+const parsePrice = (price: string) => Number(price.replace(/[^\d]/g, ""));
+const formatPrice = (value: number) =>
+  `$${new Intl.NumberFormat("es-CO").format(value)}`;
+
 const HomePage = () => {
   const { darkMode } = useDarkMode();
-  const [selectedCategory, setSelectedCategory] = useState("Todo");
   const [query, setQuery] = useState("");
   const [activeSlide, setActiveSlide] = useState(0);
   const [liked, setLiked] = useState<Record<number, boolean>>({});
@@ -136,6 +144,12 @@ const HomePage = () => {
     tipoDiseno: "",
     cantidad: "",
     detalles: "",
+  });
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [checkoutForm, setCheckoutForm] = useState({
+    nombre: "",
+    ubicacion: "",
+    notas: "",
   });
 
   const whatsappNumber = "573219064790";
@@ -182,8 +196,6 @@ const HomePage = () => {
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const matchesCategory =
-        selectedCategory === "Todo" || product.category === selectedCategory;
       const normalizedQuery = query.toLowerCase().trim();
       const matchesQuery =
         normalizedQuery.length === 0 ||
@@ -191,13 +203,119 @@ const HomePage = () => {
         product.description.toLowerCase().includes(normalizedQuery) ||
         product.category.toLowerCase().includes(normalizedQuery);
 
-      return matchesCategory && matchesQuery;
+      return matchesQuery;
     });
-  }, [query, selectedCategory]);
+  }, [query]);
+
+  useEffect(() => {
+    const rawCart = localStorage.getItem("oso_cart");
+    if (rawCart) {
+      try {
+        const parsed = JSON.parse(rawCart) as CartItem[];
+        setCart(parsed);
+      } catch {
+        setCart([]);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("oso_cart", JSON.stringify(cart));
+  }, [cart]);
 
   const toggleLike = (id: number) => {
     setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
   };
+
+  const addToCart = (product: Product) => {
+    setCart((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [
+        ...prev,
+        {
+          id: product.id,
+          title: product.title,
+          price: product.price,
+          quantity: 1,
+        },
+      ];
+    });
+  };
+
+  const changeQuantity = (id: number, delta: number) => {
+    setCart((prev) =>
+      prev
+        .map((item) =>
+          item.id === id
+            ? { ...item, quantity: Math.max(0, item.quantity + delta) }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  };
+
+  const cartItemsCount = useMemo(
+    () => cart.reduce((acc, item) => acc + item.quantity, 0),
+    [cart]
+  );
+
+  const cartTotal = useMemo(
+    () => cart.reduce((acc, item) => acc + parsePrice(item.price) * item.quantity, 0),
+    [cart]
+  );
+
+  const handleCheckoutChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = event.target;
+    setCheckoutForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCartSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (cart.length === 0) {
+      window.alert("Tu carrito esta vacio.");
+      return;
+    }
+
+    if (!checkoutForm.nombre.trim() || !checkoutForm.ubicacion.trim()) {
+      window.alert("Completa nombre y ubicacion para finalizar la compra.");
+      return;
+    }
+
+    const itemsLines = cart
+      .map(
+        (item, index) =>
+          `${index + 1}. ${item.title} x${item.quantity} - ${item.price}`
+      )
+      .join("\n");
+
+    const message = [
+      "Hola O.S.O Studio, quiero comprar estas camisetas:",
+      "",
+      itemsLines,
+      "",
+      `Total estimado: ${formatPrice(cartTotal)}`,
+      "",
+      "Datos del comprador:",
+      `Nombre: ${checkoutForm.nombre.trim()}`,
+      `Ubicacion: ${checkoutForm.ubicacion.trim()}`,
+      `Notas: ${checkoutForm.notas.trim() || "Sin notas adicionales"}`,
+    ].join("\n");
+
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const clearCart = () => setCart([]);
 
   return (
     <div className={`min-h-screen ${darkMode ? "bg-slate-950 text-white" : "bg-slate-50 text-slate-900"}`}>
@@ -298,22 +416,14 @@ const HomePage = () => {
             </p>
           </div>
 
-          <div className="mb-6 flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  selectedCategory === category
-                    ? "bg-gradient-to-r from-fuchsia-500 to-indigo-500 text-white"
-                    : darkMode
-                    ? "bg-white/5 text-slate-300 hover:bg-white/10"
-                    : "bg-white text-slate-700 hover:bg-slate-100"
-                }`}
-              >
-                {category}
-              </button>
-            ))}
+          <div className="mb-4 flex items-center justify-end">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                darkMode ? "bg-white/10 text-slate-200" : "bg-slate-100 text-slate-700"
+              }`}
+            >
+              Carrito: {cartItemsCount} item{cartItemsCount === 1 ? "" : "s"}
+            </span>
           </div>
 
           <div className={`mb-8 flex items-center gap-3 rounded-2xl border p-3 ${darkMode ? "border-white/10 bg-white/5" : "border-slate-200 bg-white"}`}>
@@ -365,7 +475,10 @@ const HomePage = () => {
                     {product.description}
                   </p>
                   <div className="flex gap-2">
-                    <button className="flex-1 rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-3 py-2 text-sm font-semibold text-white">
+                    <button
+                      onClick={() => addToCart(product)}
+                      className="flex-1 rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-3 py-2 text-sm font-semibold text-white"
+                    >
                       Agregar
                     </button>
                     <button
@@ -381,11 +494,117 @@ const HomePage = () => {
             ))}
           </div>
 
-          {filteredProducts.length === 0 && (
-            <div className={`mt-6 rounded-2xl border p-5 text-sm ${darkMode ? "border-white/10 bg-white/5 text-slate-300" : "border-slate-200 bg-white text-slate-600"}`}>
-              No encontramos camisetas con ese criterio. Prueba otra categoria o palabra clave.
+          <div
+            className={`mt-8 rounded-3xl border p-5 ${
+              darkMode ? "border-white/10 bg-white/5" : "border-slate-200 bg-white"
+            }`}
+          >
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <h3 className="text-xl font-bold">Carrito de compra</h3>
+              <button
+                onClick={clearCart}
+                className={`rounded-lg px-3 py-1 text-xs font-semibold ${
+                  darkMode ? "bg-white/10 text-slate-200" : "bg-slate-100 text-slate-700"
+                }`}
+              >
+                Vaciar carrito
+              </button>
             </div>
-          )}
+
+            {cart.length === 0 ? (
+              <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+                Aun no agregas productos. Pulsa "Agregar" en cualquier camiseta.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {cart.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`flex items-center justify-between rounded-2xl border px-3 py-2 ${
+                      darkMode ? "border-white/10 bg-slate-900/50" : "border-slate-200 bg-slate-50"
+                    }`}
+                  >
+                    <div>
+                      <p className="text-sm font-semibold">{item.title}</p>
+                      <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+                        {item.price}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => changeQuantity(item.id, -1)}
+                        className={`h-7 w-7 rounded-full ${
+                          darkMode ? "bg-white/10" : "bg-slate-200"
+                        }`}
+                      >
+                        -
+                      </button>
+                      <span className="min-w-6 text-center text-sm font-semibold">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => changeQuantity(item.id, 1)}
+                        className={`h-7 w-7 rounded-full ${
+                          darkMode ? "bg-white/10" : "bg-slate-200"
+                        }`}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p className="mt-4 text-sm font-semibold">
+              Total estimado: {formatPrice(cartTotal)}
+            </p>
+
+            <form className="mt-4 space-y-3" onSubmit={handleCartSubmit}>
+              <input
+                type="text"
+                name="nombre"
+                value={checkoutForm.nombre}
+                onChange={handleCheckoutChange}
+                placeholder="Tu nombre"
+                className={`w-full rounded-xl border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                  darkMode
+                    ? "border-white/10 bg-white/5 text-white placeholder:text-slate-400"
+                    : "border-slate-200 bg-slate-50 placeholder:text-slate-500"
+                }`}
+              />
+              <input
+                type="text"
+                name="ubicacion"
+                value={checkoutForm.ubicacion}
+                onChange={handleCheckoutChange}
+                placeholder="Ubicacion de entrega"
+                className={`w-full rounded-xl border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                  darkMode
+                    ? "border-white/10 bg-white/5 text-white placeholder:text-slate-400"
+                    : "border-slate-200 bg-slate-50 placeholder:text-slate-500"
+                }`}
+              />
+              <textarea
+                rows={3}
+                name="notas"
+                value={checkoutForm.notas}
+                onChange={handleCheckoutChange}
+                placeholder="Notas (talla, color, fecha, etc)"
+                className={`w-full rounded-xl border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                  darkMode
+                    ? "border-white/10 bg-white/5 text-white placeholder:text-slate-400"
+                    : "border-slate-200 bg-slate-50 placeholder:text-slate-500"
+                }`}
+              />
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-5 py-3 text-sm font-semibold text-white"
+              >
+                Comprar por WhatsApp
+              </button>
+            </form>
+          </div>
         </div>
       </section>
 
