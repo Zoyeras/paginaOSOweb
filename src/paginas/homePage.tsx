@@ -114,6 +114,8 @@ const products: Product[] = [
   },
 ];
 
+const categories = ["Todo", "Anime", "Romance", "Autos", "Ghibli", "Religioso"];
+
 const heroSlides = [
   {
     title: "Tu camiseta no es ropa.\nEs identidad.",
@@ -135,9 +137,13 @@ const formatPrice = (value: number) =>
 
 const HomePage = () => {
   const { darkMode } = useDarkMode();
-  const [query, setQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Todo");
   const [activeSlide, setActiveSlide] = useState(0);
   const [liked, setLiked] = useState<Record<number, boolean>>({});
+  const [notice, setNotice] = useState<{
+    kind: "error" | "success";
+    message: string;
+  } | null>(null);
   const [contactForm, setContactForm] = useState({
     nombre: "",
     ubicacion: "",
@@ -154,6 +160,10 @@ const HomePage = () => {
 
   const whatsappNumber = "573219064790";
 
+  const showNotice = (message: string, kind: "error" | "success" = "error") => {
+    setNotice({ message, kind });
+  };
+
   const handleContactChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -169,7 +179,7 @@ const HomePage = () => {
       !contactForm.ubicacion.trim() ||
       !contactForm.tipoDiseno.trim()
     ) {
-      window.alert("Completa nombre, ubicacion y tipo de diseno para continuar.");
+      showNotice("Completa nombre, ubicacion y tipo de diseno para continuar.");
       return;
     }
 
@@ -185,6 +195,7 @@ const HomePage = () => {
 
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    showNotice("Abriendo WhatsApp con tu propuesta.", "success");
   };
 
   useEffect(() => {
@@ -194,18 +205,20 @@ const HomePage = () => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = setTimeout(() => setNotice(null), 3500);
+    return () => clearTimeout(timeout);
+  }, [notice]);
+
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const normalizedQuery = query.toLowerCase().trim();
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
-        product.title.toLowerCase().includes(normalizedQuery) ||
-        product.description.toLowerCase().includes(normalizedQuery) ||
-        product.category.toLowerCase().includes(normalizedQuery);
+      const matchesCategory =
+        selectedCategory === "Todo" || product.category === selectedCategory;
 
-      return matchesQuery;
+      return matchesCategory;
     });
-  }, [query]);
+  }, [selectedCategory]);
 
   useEffect(() => {
     const rawCart = localStorage.getItem("oso_cart");
@@ -282,12 +295,12 @@ const HomePage = () => {
     event.preventDefault();
 
     if (cart.length === 0) {
-      window.alert("Tu carrito esta vacio.");
+      showNotice("Tu carrito esta vacio.");
       return;
     }
 
     if (!checkoutForm.nombre.trim() || !checkoutForm.ubicacion.trim()) {
-      window.alert("Completa nombre y ubicacion para finalizar la compra.");
+      showNotice("Completa nombre y ubicacion para finalizar la compra.");
       return;
     }
 
@@ -313,12 +326,39 @@ const HomePage = () => {
 
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    showNotice("Abriendo WhatsApp con tu pedido.", "success");
   };
 
   const clearCart = () => setCart([]);
 
   return (
     <div className={`min-h-screen ${darkMode ? "bg-slate-950 text-white" : "bg-slate-50 text-slate-900"}`}>
+      {notice && (
+        <div className="fixed right-4 top-24 z-[60] max-w-sm animate-[fadeIn_.2s_ease-out]">
+          <div
+            className={`flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur ${
+              notice.kind === "error"
+                ? darkMode
+                  ? "border-red-400/40 bg-red-500/15 text-red-100"
+                  : "border-red-200 bg-red-50 text-red-700"
+                : darkMode
+                ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-100"
+                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+            }`}
+          >
+            <span className="pt-0.5 text-base">{notice.kind === "error" ? "⚠" : "✓"}</span>
+            <p className="text-sm font-medium">{notice.message}</p>
+            <button
+              onClick={() => setNotice(null)}
+              className="ml-2 text-xs opacity-80 transition hover:opacity-100"
+              aria-label="Cerrar notificacion"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       <Header />
 
       <section id="inicio" className="relative isolate overflow-hidden px-4 pb-20 pt-32 sm:px-6">
@@ -426,14 +466,22 @@ const HomePage = () => {
             </span>
           </div>
 
-          <div className={`mb-8 flex items-center gap-3 rounded-2xl border p-3 ${darkMode ? "border-white/10 bg-white/5" : "border-slate-200 bg-white"}`}>
-            <span className={darkMode ? "text-slate-400" : "text-slate-500"}>🔍</span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar: anime, minimal, regalo, racing..."
-              className="w-full bg-transparent text-sm outline-none"
-            />
+          <div className="mb-6 flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  selectedCategory === category
+                    ? "bg-gradient-to-r from-fuchsia-500 to-indigo-500 text-white"
+                    : darkMode
+                    ? "bg-white/5 text-slate-300 hover:bg-white/10"
+                    : "bg-white text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
