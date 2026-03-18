@@ -1,6 +1,17 @@
 // api/products.js
 import { google } from 'googleapis';
 
+// Convierte el thumbnail de Drive a una variante de mayor resolución.
+const getHighResDriveImage = (file) => {
+    if (file.thumbnailLink) {
+        const cleanThumb = file.thumbnailLink.split('?')[0];
+        return cleanThumb.replace(/=s\d+(-[a-z])?$/i, '=s1600');
+    }
+
+    // Fallback cuando no llega thumbnailLink.
+    return `https://drive.google.com/thumbnail?id=${file.id}&sz=w1600`;
+};
+
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -79,13 +90,15 @@ export default async function handler(req, res) {
             console.log(`  - ${images.length} imágenes encontradas`);
 
             images.forEach((file, index) => {
+                const imageUrl = getHighResDriveImage(file);
+
                 products.push({
                     id: `${folder.id}_${file.id}`,
                     title: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ').trim(),
                     category: folder.name,
                     price: 'COTIZA YA',
                     badge: index < 3 ? 'Top ventas' : 'Disponible',
-                    image: file.thumbnailLink || file.webContentLink || '',
+                    image: imageUrl,
                     description: `Diseño de la colección ${folder.name}.`,
                 });
             });
