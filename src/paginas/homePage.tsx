@@ -21,49 +21,6 @@ type CartItem = {
   quantity: number;
 };
 
-// Configuración de categorías local (fallback)
-const categoryConfig = [
-  { label: "Amor y amistad", folder: "Amor y amistad", price: "COTIZA YA" },
-  { label: "Anime", folder: "Anime", price: "COTIZA YA" },
-  { label: "Autos", folder: "Autos", price: "COTIZA YA" },
-  { label: "Estudio Ghibli", folder: "Estudio Ghibli", price: "COTIZA YA" },
-  { label: "Religioso", folder: "Religioso", price: "COTIZA YA" },
-] as const;
-
-const categories = ["Todo", ...categoryConfig.map((c) => c.label)];
-
-const productImages = import.meta.glob(
-    "../../public/imagenes/Mockups camisetas/**/*.{jpg,jpeg,png,webp}",
-    { eager: true, import: "default" }
-) as Record<string, string>;
-
-const toTitle = (filePath: string) => {
-  const fileName = filePath.split("/").pop() || "Diseno";
-  return fileName
-      .replace(/\.(jpg|jpeg|png|webp)$/i, "")
-      .replace(/^´MOCKUP EDITABLE[-_]?/i, "")
-      .replace(/[-_]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-};
-
-const localProducts: Product[] = categoryConfig.flatMap((category, i) => {
-  const folderSegment = `/Mockups camisetas/${category.folder}/`;
-  const folderImages = Object.entries(productImages)
-      .filter(([path]) => path.includes(folderSegment))
-      .sort(([a], [b]) => a.localeCompare(b, "es"));
-
-  return folderImages.map(([path, url], j) => ({
-    id: i * 1000 + j + 1,
-    title: toTitle(path),
-    category: category.label,
-    price: category.price,
-    badge: j < 3 ? "Top ventas" : "Disponible",
-    image: url,
-    description: `Diseño de la colección ${category.label}.`,
-  }));
-});
-
 const heroSlides = [
   {
     title: "Tu camiseta no es ropa.\nEs identidad.",
@@ -140,9 +97,9 @@ const HomePage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Determinar qué productos y categorías mostrar (prioridad a Drive)
-  const currentProducts = driveProducts.length > 0 ? driveProducts : localProducts;
-  const currentCategories = driveCategories.length > 1 ? driveCategories : categories;
+  // Determinar qué productos y categorías mostrar desde Drive
+  const currentProducts = driveProducts;
+  const currentCategories = driveCategories.length > 1 ? driveCategories : ["Todo"];
 
   const filteredProducts = useMemo(() => {
     return currentProducts.filter((p) => selectedCategory === "Todo" || p.category === selectedCategory);
@@ -440,15 +397,25 @@ const HomePage = () => {
                 darkMode ? "border-white/10 bg-slate-900/80" : "border-slate-200 bg-white/95"
               }`}
             >
-              <img
-                src="/imagenes/Mockups camisetas/Amor y amistad/Amor11.jpg"
-                alt="Camiseta destacada"
-                className="h-[28rem] w-full rounded-[1.5rem] object-cover"
-              />
-              <div className="absolute inset-x-7 bottom-7 rounded-2xl bg-black/45 p-4 text-white backdrop-blur-md">
-                <p className="text-xs uppercase tracking-[0.16em] text-fuchsia-200">Drop destacado</p>
-                <p className="text-lg font-semibold">Glow Series 2026</p>
-              </div>
+              {visibleProducts.length > 0 ? (
+                <>
+                  <img
+                    src={visibleProducts[0]?.image}
+                    alt={visibleProducts[0]?.title}
+                    className="h-[28rem] w-full rounded-[1.5rem] object-cover"
+                  />
+                  <div className="absolute inset-x-7 bottom-7 rounded-2xl bg-black/45 p-4 text-white backdrop-blur-md">
+                    <p className="text-xs uppercase tracking-[0.16em] text-fuchsia-200">Drop destacado</p>
+                    <p className="text-lg font-semibold">{visibleProducts[0]?.title}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="flex h-[28rem] items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-fuchsia-500/10 to-indigo-500/10">
+                  <p className={`text-center text-sm font-semibold ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+                    Cargando productos destacados...
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
